@@ -1,6 +1,7 @@
 package intcode
 
 import (
+	"fmt"
 	"strconv"
 )
 
@@ -29,10 +30,19 @@ type Machine struct {
 }
 
 // NewMachine returns an initialized intcode machine.
-func NewMachine() Machine {
-	return Machine{
-		Input: make([]int, 0),
+func NewMachine(m map[int]int) *Machine {
+	return &Machine{
+		Input:  make([]int, 0),
+		Memory: m,
 	}
+}
+
+func (m Machine) String() string {
+	return fmt.Sprintf("Name: %s; position: %d; memory: %+v; input: %+v",
+		m.Name,
+		m.Position,
+		m.Memory,
+		m.Input)
 }
 
 // Reset the machine to zero state.
