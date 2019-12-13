@@ -32,7 +32,10 @@ type Machine struct {
 
 // NewMachine returns an initialized intcode machine.
 func NewMachine() Machine {
-	return Machine{}
+	return Machine{
+		Input:  make([]int, 0),
+		Output: make([]int, 0),
+	}
 }
 
 // ProcessProgram will run an intcode.
