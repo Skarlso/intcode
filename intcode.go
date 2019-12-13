@@ -25,20 +25,23 @@ type Machine struct {
 	Position int
 	Memory   map[int]int
 	Input    []int
-	Output   []int
 	Name     string
 }
 
 // NewMachine returns an initialized intcode machine.
 func NewMachine() Machine {
 	return Machine{
-		Input:  make([]int, 0),
-		Output: make([]int, 0),
+		Input: make([]int, 0),
 	}
 }
 
+// Reset the machine to zero state.
+func (m *Machine) Reset() {
+	m.Position = 0
+}
+
 // ProcessProgram will run an intcode.
-func (m *Machine) ProcessProgram() (done bool) {
+func (m *Machine) ProcessProgram() (out []int, done bool) {
 loop:
 	for {
 		opcode := m.Memory[m.Position]
@@ -58,7 +61,7 @@ loop:
 		case input:
 			if len(m.Input) < 1 {
 				//fmt.Printf("%q run out of input... returning\n", m.Name)
-				return false
+				return out, false
 			}
 			var in int
 			//fmt.Printf("In for %q is: %d\n", m.Name, m.Input)
@@ -66,18 +69,18 @@ loop:
 			m.Memory[m.Memory[m.Position+1]] = in
 			m.Position += 2
 		case output:
-			var out int
+			var oout int
 			if len(modes) > 0 {
 				switch modes[0] {
 				case position:
-					out = m.Memory[m.Memory[m.Position+1]]
+					oout = m.Memory[m.Memory[m.Position+1]]
 				case immediate:
-					out = m.Memory[m.Position+1]
+					oout = m.Memory[m.Position+1]
 				}
 			} else {
-				out = m.Memory[m.Memory[m.Position+1]]
+				oout = m.Memory[m.Memory[m.Position+1]]
 			}
-			m.Output = append(m.Output, out)
+			out = append(out, oout)
 			//fmt.Printf("Out of %q is: %+v\n", m.Name, out)
 			m.Position += 2
 		case jmp:
@@ -121,7 +124,7 @@ loop:
 		}
 	}
 
-	return true
+	return out, true
 }
 
 func getArguments(num, i int, modes []int, memory map[int]int) (args []int) {
