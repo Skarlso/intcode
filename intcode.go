@@ -1,7 +1,6 @@
 package intcode
 
 import (
-	"fmt"
 	"strconv"
 )
 
@@ -39,7 +38,7 @@ func NewMachine() Machine {
 }
 
 // ProcessProgram will run an intcode.
-func (m *Machine) ProcessProgram() (out []int, done bool) {
+func (m *Machine) ProcessProgram() (done bool) {
 loop:
 	for {
 		opcode := m.Memory[m.Position]
@@ -58,28 +57,28 @@ loop:
 			m.Position += 4
 		case input:
 			if len(m.Input) < 1 {
-				//fmt.Printf("%q run out of input... returning\n", m.name)
-				return out, false
+				//fmt.Printf("%q run out of input... returning\n", m.Name)
+				return false
 			}
 			var in int
-			fmt.Printf("In for %q is: %d\n", m.Name, m.Input)
+			//fmt.Printf("In for %q is: %d\n", m.Name, m.Input)
 			in, m.Input = m.Input[0], m.Input[1:]
 			m.Memory[m.Memory[m.Position+1]] = in
 			m.Position += 2
 		case output:
-			var oout int
+			var out int
 			if len(modes) > 0 {
 				switch modes[0] {
 				case position:
-					oout = m.Memory[m.Memory[m.Position+1]]
+					out = m.Memory[m.Memory[m.Position+1]]
 				case immediate:
-					oout = m.Memory[m.Position+1]
+					out = m.Memory[m.Position+1]
 				}
 			} else {
-				oout = m.Memory[m.Memory[m.Position+1]]
+				out = m.Memory[m.Memory[m.Position+1]]
 			}
-			out = append(out, oout)
-			fmt.Printf("Out of %q is: %+v\n", m.Name, out)
+			m.Output = append(m.Output, out)
+			//fmt.Printf("Out of %q is: %+v\n", m.Name, out)
 			m.Position += 2
 		case jmp:
 			args := getArguments(2, m.Position, modes, m.Memory)
@@ -122,7 +121,7 @@ loop:
 		}
 	}
 
-	return out, true
+	return true
 }
 
 func getArguments(num, i int, modes []int, memory map[int]int) (args []int) {
