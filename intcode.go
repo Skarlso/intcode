@@ -14,6 +14,7 @@ const (
 	jmpf
 	less
 	eq
+	adj
 )
 
 const (
@@ -64,22 +65,22 @@ loop:
 		//fmt.Println("i, op: ", i, op)
 		switch op {
 		case add:
-			args := getArguments(3, modes)
+			args := m.getArguments(3, modes)
 			m.Memory[args[2]] = args[0] + args[1]
 			m.Position += 4
 		case multi:
-			args := getArguments(3, modes)
+			args := m.getArguments(3, modes)
 			m.Memory[args[2]] = args[0] * args[1]
 			m.Position += 4
 		case input:
-			if len(m.Input) < 1 {
-				//fmt.Printf("%q run out of input... returning\n", m.Name)
-				return out, false
-			}
-			var in int
+			//if len(m.Input) < 1 {
+			//	//fmt.Printf("%q run out of input... returning\n", m.Name)
+			//	return out, false
+			//}
+			//var in int
 			//fmt.Printf("In for %q is: %d\n", m.Name, m.Input)
-			in, m.Input = m.Input[0], m.Input[1:]
-			m.Memory[m.Memory[m.Position+1]] = in
+			args := m.getArguments(2, modes)
+			m.Memory[m.Memory[m.Position+1]] = args[0]
 			m.Position += 2
 		case output:
 			var oout int
@@ -89,6 +90,9 @@ loop:
 					oout = m.Memory[m.Memory[m.Position+1]]
 				case immediate:
 					oout = m.Memory[m.Position+1]
+				case relative:
+					pos := m.RelativeBase + m.Memory[m.Memory[m.Position+1]]
+					oout = m.Memory[pos]
 				}
 			} else {
 				oout = m.Memory[m.Memory[m.Position+1]]
@@ -97,7 +101,7 @@ loop:
 			//fmt.Printf("Out of %q is: %+v\n", m.Name, out)
 			m.Position += 2
 		case jmp:
-			args := getArguments(2, modes)
+			args := m.getArguments(2, modes)
 			if args[0] != 0 {
 				m.Position = args[1]
 			} else {
@@ -105,7 +109,7 @@ loop:
 			}
 			//fmt.Printf("5 i: %d args: %+v\n", i, args)
 		case jmpf:
-			args := getArguments(2, m.Position, modes, m.Memory)
+			args := m.getArguments(2, modes)
 			if args[0] == 0 {
 				m.Position = args[1]
 			} else {
@@ -113,7 +117,7 @@ loop:
 			}
 			//fmt.Printf("6 i: %d args: %+v\n", i, args)
 		case less:
-			args := getArguments(3, modes)
+			args := m.getArguments(3, modes)
 			if args[0] < args[1] {
 				m.Memory[args[2]] = 1
 			} else {
@@ -122,7 +126,7 @@ loop:
 			//fmt.Printf("7 i: %d args: %+v\n", i, args)
 			m.Position += 4
 		case eq:
-			args := getArguments(3, modes)
+			args := m.getArguments(3, modes)
 			if args[0] == args[1] {
 				m.Memory[args[2]] = 1
 			} else {
@@ -130,6 +134,10 @@ loop:
 			}
 			//fmt.Printf("8 i: %d args: %+v\n", i, args)
 			m.Position += 4
+		case adj:
+			args := m.getArguments(2, modes)
+			m.RelativeBase += args[0]
+			m.Position += 2
 		case 99:
 			break loop
 		default:
@@ -159,7 +167,12 @@ func (m *Machine) getArguments(num int, modes []int) (args []int) {
 		case immediate:
 			args = append(args, m.Memory[m.Position+p+1])
 		case relative:
-			pos := m.RelativeBase + m.Memory[m.Position+p+1]
+			var pos int
+			if p > 1 && p+1 == num {
+				pos = m.RelativeBase + m.Memory[m.Position+p+1]
+			} else {
+				pos = m.RelativeBase + m.Memory[m.Memory[m.Position+p+1]]
+			}
 			args = append(args, m.Memory[pos])
 		}
 	}
