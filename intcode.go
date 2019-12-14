@@ -74,16 +74,17 @@ loop:
 			m.Memory[args[2]] = args[0] * args[1]
 			m.Position += 4
 		case input:
-			fmt.Println(m.Memory)
+			//fmt.Println(m.Memory)
 			args := m.getArguments(1, modes)
-			fmt.Printf("Modes: %+v; Position: %d; Op: %d Args: %+v\n", modes, m.Position, op, args)
+			//fmt.Printf("Modes: %+v; Position: %d; Op: %d Args: %+v; Value At pos: %d\n", modes, m.Position, op, args, m.Memory[args[0]])
 			if len(m.Input) > 0 {
 				var in int
 				in, m.Input = m.Input[0], m.Input[1:]
-				m.Memory[args[0]] = in
+				m.Memory[m.Memory[args[0]]] = in
 			} else {
-				m.Memory[args[0]] = args[0]
+				m.Memory[m.Memory[args[0]]] = m.Memory[args[0]]
 			}
+			//fmt.Println(m.Memory)
 			m.Position += 2
 			//fmt.Printf("In for %q is: %d\n", m.Name, m.Input)
 			//fmt.Println(args)
