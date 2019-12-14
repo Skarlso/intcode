@@ -19,14 +19,16 @@ const (
 const (
 	position = iota
 	immediate
+	relative
 )
 
 // Machine is a running environment for an intcode program.
 type Machine struct {
-	Position int
-	Memory   map[int]int
-	Input    []int
-	Name     string
+	Position     int
+	Memory       map[int]int
+	Input        []int
+	Name         string
+	RelativeBase int
 }
 
 // NewMachine returns an initialized intcode machine.
@@ -48,6 +50,7 @@ func (m Machine) String() string {
 // Reset the machine to zero state.
 func (m *Machine) Reset() {
 	m.Position = 0
+	m.RelativeBase = 0
 }
 
 // ProcessProgram will run an intcode.
@@ -61,11 +64,11 @@ loop:
 		//fmt.Println("i, op: ", i, op)
 		switch op {
 		case add:
-			args := getArguments(3, m.Position, modes, m.Memory)
+			args := getArguments(3, modes)
 			m.Memory[args[2]] = args[0] + args[1]
 			m.Position += 4
 		case multi:
-			args := getArguments(3, m.Position, modes, m.Memory)
+			args := getArguments(3, modes)
 			m.Memory[args[2]] = args[0] * args[1]
 			m.Position += 4
 		case input:
@@ -94,7 +97,7 @@ loop:
 			//fmt.Printf("Out of %q is: %+v\n", m.Name, out)
 			m.Position += 2
 		case jmp:
-			args := getArguments(2, m.Position, modes, m.Memory)
+			args := getArguments(2, modes)
 			if args[0] != 0 {
 				m.Position = args[1]
 			} else {
@@ -110,7 +113,7 @@ loop:
 			}
 			//fmt.Printf("6 i: %d args: %+v\n", i, args)
 		case less:
-			args := getArguments(3, m.Position, modes, m.Memory)
+			args := getArguments(3, modes)
 			if args[0] < args[1] {
 				m.Memory[args[2]] = 1
 			} else {
@@ -119,7 +122,7 @@ loop:
 			//fmt.Printf("7 i: %d args: %+v\n", i, args)
 			m.Position += 4
 		case eq:
-			args := getArguments(3, m.Position, modes, m.Memory)
+			args := getArguments(3, modes)
 			if args[0] == args[1] {
 				m.Memory[args[2]] = 1
 			} else {
@@ -137,24 +140,27 @@ loop:
 	return out, true
 }
 
-func getArguments(num, i int, modes []int, memory map[int]int) (args []int) {
+func (m *Machine) getArguments(num int, modes []int) (args []int) {
 	for p := 0; p < num; p++ {
-		var m int
+		var mode int
 		if p >= len(modes) {
-			m = 0
+			mode = 0
 		} else {
-			m = modes[p]
+			mode = modes[p]
 		}
-		switch m {
+		switch mode {
 		case position:
 			// Because parameters that an instruction writes to is always in position mode.
 			if p > 1 && p+1 == num {
-				args = append(args, memory[i+p+1])
+				args = append(args, m.Memory[m.Position+p+1])
 			} else {
-				args = append(args, memory[memory[i+p+1]])
+				args = append(args, m.Memory[m.Memory[m.Position+p+1]])
 			}
 		case immediate:
-			args = append(args, memory[i+p+1])
+			args = append(args, m.Memory[m.Position+p+1])
+		case relative:
+			pos := m.RelativeBase + m.Memory[m.Position+p+1]
+			args = append(args, m.Memory[pos])
 		}
 	}
 	return
