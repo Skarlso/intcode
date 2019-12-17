@@ -73,13 +73,16 @@ loop:
 			m.Position += 4
 		case input:
 			dest := m.getParameter(1, modes)
-			if len(m.Input) > 0 {
-				var in int
-				in, m.Input = m.Input[0], m.Input[1:]
-				m.Memory[dest] = in
-			} else {
-				m.Memory[m.Memory[dest]] = m.Memory[dest]
+			if len(m.Input) < 1 {
+				return out, false
 			}
+			//if len(m.Input) > 0 {
+			var in int
+			in, m.Input = m.Input[0], m.Input[1:]
+			m.Memory[dest] = in
+			//} else {
+			//	m.Memory[m.Memory[dest]] = m.Memory[dest]
+			//}
 			m.Position += 2
 		case output:
 			dest := m.getParameter(1, modes)
