@@ -54,6 +54,22 @@ func (m *Machine) Reset() {
 	m.RelativeBase = 0
 }
 
+// Clone provides a clone of the current machine with all the code and positions
+// kept in tact.
+func (m *Machine) Clone() Machine {
+	newMemory := make(map[int]int, len(m.Memory))
+	for k, v := range m.Memory {
+		newMemory[k] = v
+	}
+	return Machine{
+		Memory:       newMemory,
+		Position:     m.Position,
+		RelativeBase: m.RelativeBase,
+		Name:         m.Name + "-Clone",
+		Input:        m.Input,
+	}
+}
+
 // ProcessProgram will run an intcode.
 func (m *Machine) ProcessProgram() (out []int, done bool) {
 loop:
