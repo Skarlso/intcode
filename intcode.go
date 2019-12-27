@@ -25,11 +25,12 @@ const (
 
 // Machine is a running environment for an intcode program.
 type Machine struct {
-	Position     int
-	Memory       map[int]int
-	Input        []int
-	Name         string
-	RelativeBase int
+	Position         int
+	Memory           map[int]int
+	Input            []int
+	Name             string
+	RelativeBase     int
+	InstructionCount int
 }
 
 // NewMachine returns an initialized intcode machine.
@@ -62,11 +63,12 @@ func (m *Machine) Clone() Machine {
 		newMemory[k] = v
 	}
 	return Machine{
-		Memory:       newMemory,
-		Position:     m.Position,
-		RelativeBase: m.RelativeBase,
-		Name:         m.Name + "-Clone",
-		Input:        m.Input,
+		Memory:           newMemory,
+		Position:         m.Position,
+		RelativeBase:     m.RelativeBase,
+		Name:             m.Name + "-Clone",
+		Input:            m.Input,
+		InstructionCount: m.InstructionCount,
 	}
 }
 
